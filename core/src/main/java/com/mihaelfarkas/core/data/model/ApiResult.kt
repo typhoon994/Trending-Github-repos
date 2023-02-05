@@ -1,4 +1,4 @@
-package com.mihaelfarkas.core.data.datasource
+package com.mihaelfarkas.core.data.model
 
 sealed class ApiResult<T>(val data: List<T>) {
     class Success<T>(data: List<T>) : ApiResult<T>(data)

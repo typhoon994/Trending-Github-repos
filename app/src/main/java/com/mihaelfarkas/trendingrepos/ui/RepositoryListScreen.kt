@@ -25,11 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.mihaelfarkas.core.data.model.GithubRepository
+import com.mihaelfarkas.core.domain.datamodel.RepositoryDataModel
 import com.mihaelfarkas.trendingrepos.R
 import com.mihaelfarkas.trendingrepos.ui.theme.PaddingExtraSmall
 import com.mihaelfarkas.trendingrepos.ui.theme.PaddingNormal
@@ -47,12 +46,14 @@ fun RepositoryListScreen(viewModel: RepositoryListViewModel = hiltViewModel()) {
             Text(stringResource(id = R.string.app_name))
         })
     }) { paddingValues ->
-        RepositoryList(modifier = Modifier.padding(paddingValues), uiState = uiState)
+        RepositoryList(modifier = Modifier.padding(paddingValues), uiState = uiState) {
+            viewModel.fetchNextRepositoriesPage()
+        }
     }
 }
 
 @Composable
-private fun RepositoryList(modifier: Modifier, uiState: RepositoryListUiState) {
+private fun RepositoryList(modifier: Modifier, uiState: RepositoryListUiState, onRetryClick: () -> Unit) {
     LazyColumn(modifier = modifier) {
         items(uiState.items, key = { it.id }) {
             RepositoryItem(item = it)
@@ -61,13 +62,13 @@ private fun RepositoryList(modifier: Modifier, uiState: RepositoryListUiState) {
             ListLoader()
         }
         if (uiState.isError) item {
-            RetryButton()
+            RetryButton(onRetryClick)
         }
     }
 }
 
 @Composable
-private fun RepositoryItem(item: GithubRepository) {
+private fun RepositoryItem(item: RepositoryDataModel) {
     Card(
         modifier = Modifier
             .padding(horizontal = PaddingNormal, vertical = PaddingSmall)
@@ -80,9 +81,9 @@ private fun RepositoryItem(item: GithubRepository) {
                 text = item.name,
                 style = MaterialTheme.typography.titleSmall
             )
-            if (!item.description.isNullOrBlank()) {
+            if (item.description.isNotBlank()) {
                 Text(
-                    text = item.description ?: "",
+                    text = item.description,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -90,7 +91,7 @@ private fun RepositoryItem(item: GithubRepository) {
                 Icon(painter = painterResource(id = R.drawable.ic_star), contentDescription = null)
                 Text(
                     modifier = Modifier.padding(start = PaddingExtraSmall),
-                    text = item.stargazersCount.toString(),
+                    text = item.starCount.toString(),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -102,13 +103,13 @@ private fun RepositoryItem(item: GithubRepository) {
                     modifier = Modifier
                         .size(SizeLarge)
                         .clip(CircleShape),
-                    model = item.owner.avatarUrl,
+                    model = item.ownerAvatarUrl,
                     contentDescription = null,
                 )
 
                 Text(
                     modifier = Modifier.padding(horizontal = PaddingExtraSmall),
-                    text = item.owner.login,
+                    text = item.ownerUsername,
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -129,15 +130,17 @@ private fun ListLoader() {
 }
 
 @Composable
-private fun RetryButton() {
+private fun RetryButton(onRetryClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(PaddingSmall),
         horizontalArrangement = Arrangement.Center
     ) {
-        IconButton(onClick = { /*TODO*/ }) {
-//            Icon()
+        IconButton(
+            onClick = { onRetryClick.invoke() }
+        ) {
+            Icon(painter = painterResource(id = R.drawable.ic_retry), contentDescription = null)
         }
     }
 }
