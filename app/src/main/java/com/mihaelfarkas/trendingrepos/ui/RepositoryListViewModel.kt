@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mihaelfarkas.core.domain.FetchRepositoriesUseCase
 import com.mihaelfarkas.core.domain.GetRepositoryFlowUseCase
+import com.mihaelfarkas.core.domain.datamodel.DataResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,11 @@ class RepositoryListViewModel @Inject constructor(
 ) : ViewModel() {
 
     val repositoryFlow = getRepositoryFlowUseCase().map {
-        RepositoryListUiState(items = it.data)
+        RepositoryListUiState(
+            isLoading = it is DataResult.Loading,
+            isError = it is DataResult.Error,
+            items = it.data
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT),
@@ -27,6 +32,10 @@ class RepositoryListViewModel @Inject constructor(
 
     init {
         // Fetch initial data to display
+        fetchNextRepositoriesPage()
+    }
+
+    fun fetchNextRepositoriesPage() {
         viewModelScope.launch {
             fetchRepositoriesUseCase.invoke()
         }

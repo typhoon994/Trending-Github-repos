@@ -4,11 +4,11 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class GithubRepository(
+data class RepositoryModel(
     val id: Int,
     val name: String,
     val description: String?,
     @Json(name = "stargazers_count")
     val stargazersCount: Int,
-    val owner: GithubUser
+    val owner: UserModel
 )

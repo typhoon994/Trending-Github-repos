@@ -1,11 +1,11 @@
 package com.mihaelfarkas.trendingrepos.ui
 
 import androidx.compose.runtime.Immutable
-import com.mihaelfarkas.core.data.model.GithubRepository
+import com.mihaelfarkas.core.domain.datamodel.RepositoryDataModel
 
 @Immutable // Needed because all the lists are considered as mutable structures in Compose
 data class RepositoryListUiState(
     val isLoading: Boolean = false,
-    val items: List<GithubRepository> = emptyList(),
+    val items: List<RepositoryDataModel> = emptyList(),
     val isError: Boolean = false
 )
