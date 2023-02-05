@@ -5,6 +5,7 @@ import com.mihaelfarkas.core.data.datasource.ApiDataSource
 import com.mihaelfarkas.core.data.datasource.ApiResult
 import com.mihaelfarkas.core.data.model.GithubRepository
 import com.mihaelfarkas.core.data.model.GithubRepositoryPageResponse
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 
+@ViewModelScoped
 class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSource) {
     private var page: Int = 0
     private var query: String = ""
@@ -37,6 +39,7 @@ class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSou
 
             remoteApiDataSource.searchRepositories(query = query).enqueue(object : Callback<GithubRepositoryPageResponse> {
                 override fun onResponse(call: Call<GithubRepositoryPageResponse>, response: Response<GithubRepositoryPageResponse>) {
+                    Log.d("TAG", "On response, success: ${response.isSuccessful}")
                     if (response.isSuccessful) {
                         val newData = response.body()?.items ?: emptyList()
                         _repositoryFlow.update {
@@ -50,6 +53,7 @@ class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSou
                 }
 
                 override fun onFailure(call: Call<GithubRepositoryPageResponse>, t: Throwable) {
+                    Log.d("TAG", "On response, success: onFailure")
                     _repositoryFlow.update { ApiResult.Error(t, it.data) }
                 }
             })
