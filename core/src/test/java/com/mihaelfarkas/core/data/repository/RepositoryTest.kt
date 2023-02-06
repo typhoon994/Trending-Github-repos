@@ -3,7 +3,6 @@ package com.mihaelfarkas.core.data.repository
 import com.mihaelfarkas.core.data.datasource.ApiDataSource
 import com.mihaelfarkas.core.data.model.ApiResult
 import com.mihaelfarkas.core.data.model.RepositoryPageModel
-import com.mihaelfarkas.core.domain.datamodel.DataResult
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
