@@ -44,4 +44,10 @@ dependencies {
     // Hilt
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
+
+    // Mockk for unit tests
+    testImplementation "io.mockk:mockk:$mockk_version"
+    // Coroutine test
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutine_test_version"
+    testImplementation "junit:junit:$junit_version"
 }
