@@ -1,6 +1,5 @@
 package com.mihaelfarkas.trendingrepos.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -73,7 +72,7 @@ private fun RepositoryList(
     val endReached by remember { derivedStateOf { columnState.isScrolledToEnd() } }
 
     LazyColumn(modifier = modifier, state = columnState) {
-        items(uiState.items, key = { it.id }) {
+        items(uiState.items.toList(), key = { it.id }) {
             RepositoryItem(item = it)
         }
         if (uiState.isLoading) item {
@@ -99,7 +98,7 @@ private fun LazyListState.isScrolledToEnd(): Boolean {
 @Composable
 private fun RepositoryListPreview() {
     val item = RepositoryDataModel(0, "test", "description test", 4, "test user", "")
-    RepositoryList(uiState = RepositoryListUiState(isLoading = true, isError = true, items = listOf(item, item, item)), onRetryClick = {
+    RepositoryList(uiState = RepositoryListUiState(isLoading = true, isError = true, items = LinkedHashSet(listOf(item))), onRetryClick = {
         // Ignore retry click
     }, onPageEndReached = {
         // Ignore end of page

@@ -12,6 +12,7 @@ interface ApiDataSource {
         @Query("q") query: String,
         @Query("sort") sort: String = "stars",
         @Query("order") order: String = "desc",
-        @Query("page") page: String = ""
+        @Query("per_page") perPage: Int = 30,
+        @Query("page") page: Int = 0
     ): Call<RepositoryPageModel>
 }

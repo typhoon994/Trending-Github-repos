@@ -3,64 +3,56 @@ package com.mihaelfarkas.core.data.repository
 import com.mihaelfarkas.core.data.datasource.ApiDataSource
 import com.mihaelfarkas.core.data.model.ApiResult
 import com.mihaelfarkas.core.data.model.RepositoryModel
-import com.mihaelfarkas.core.data.model.RepositoryPageModel
 import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.suspendCancellableCoroutine
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
 import javax.inject.Inject
-import kotlin.coroutines.resume
 
 @ViewModelScoped
-class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSource) {
+class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSource, private val mutex: Mutex) {
+    // Used to keep track of current page
     private var page: Int = INITIAL_PAGE_NUMBER
     private var query: String = ""
-    private val _repositoryFlow = MutableStateFlow<ApiResult<RepositoryModel>>(ApiResult.Success(emptyList()))
 
-    val repositoryFlow: Flow<ApiResult<RepositoryModel>> = _repositoryFlow
+    suspend fun fetchRepositories(query: String): Flow<ApiResult<RepositoryModel>> = flow {
+        // Use mutex to avoid fetching multiple times same page
+        mutex.lock()
+        when {
+            this@Repository.query != query -> {
+                // Reset flags if query changed
+                this@Repository.query = query
+                page = INITIAL_PAGE_NUMBER
+            }
+            page == END_OF_PAGE -> {
+                // End of page reached, do nothing
+                mutex.unlock()
+                return@flow
+            }
+            else -> {
+                // Just increment page if query is the same
+                ++page
+            }
+        }
 
-    suspend fun fetchRepositories(query: String) {
-        if (this.query != query) {
-            // Reset flags if query changed
-            this.query = query
-            page = INITIAL_PAGE_NUMBER
+        emit(ApiResult.Loading())
+
+        val response = remoteApiDataSource.searchRepositories(query = query, perPage = PER_PAGE_COUNT, page = page).execute()
+        if (response.isSuccessful) {
+            val newData = response.body()?.items ?: emptyList()
+            emit(ApiResult.Success(newData))
+            if (newData.size < PER_PAGE_COUNT) page = END_OF_PAGE
         } else {
-            // Just increment page if query is the same
-            ++page
+            emit(ApiResult.Error(Exception(response.message())))
         }
-
-        suspendCancellableCoroutine { continuation ->
-            _repositoryFlow.update { ApiResult.Loading(it.data) }
-
-            remoteApiDataSource.searchRepositories(query = query, page = page.toString()).enqueue(object : Callback<RepositoryPageModel> {
-                override fun onResponse(call: Call<RepositoryPageModel>, response: Response<RepositoryPageModel>) {
-                    if (response.isSuccessful) {
-                        val newData = response.body()?.items ?: emptyList()
-                        _repositoryFlow.update {
-                            ApiResult.Success(it.data + newData)
-                        }
-                    } else {
-                        _repositoryFlow.update {
-                            ApiResult.Error(Exception(ERROR_FORMAT.format(response.code())), it.data)
-                        }
-                    }
-                    continuation.resume(Unit)
-                }
-
-                override fun onFailure(call: Call<RepositoryPageModel>, t: Throwable) {
-                    _repositoryFlow.update { ApiResult.Error(t, it.data) }
-                    continuation.resume(Unit)
-                }
-            })
-        }
-    }
+        mutex.unlock()
+    }.flowOn(Dispatchers.IO)
 
     companion object {
+        private const val PER_PAGE_COUNT = 30
         private const val INITIAL_PAGE_NUMBER = 1
-        private const val ERROR_FORMAT = "Response code: %s"
+        private const val END_OF_PAGE = -1
     }
 }
