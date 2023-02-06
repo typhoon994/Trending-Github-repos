@@ -1,7 +1,7 @@
 package com.mihaelfarkas.core.data.model
 
-sealed class ApiResult<T>(val data: List<T>) {
-    class Success<T>(data: List<T>) : ApiResult<T>(data)
-    class Loading<T>(data: List<T>) : ApiResult<T>(data)
-    class Error<T>(val throwable: Throwable, data: List<T>) : ApiResult<T>(data)
+sealed class ApiResult<T> {
+    class Success<T>(val data: List<T>) : ApiResult<T>()
+    class Loading<T> : ApiResult<T>()
+    class Error<T>(val throwable: Throwable) : ApiResult<T>()
 }

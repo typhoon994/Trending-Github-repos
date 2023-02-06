@@ -19,11 +19,13 @@ object RepositoryMapper {
     }
 
     fun fromApiResult(apiResult: ApiResult<RepositoryModel>): DataResult<RepositoryDataModel> {
-        val dataModels = apiResult.data.map { fromApiModel(it) }
         return when (apiResult) {
-            is ApiResult.Success -> DataResult.Success(dataModels)
-            is ApiResult.Error -> DataResult.Error(apiResult.throwable, dataModels)
-            is ApiResult.Loading -> DataResult.Loading(dataModels)
+            is ApiResult.Success -> {
+                val dataModels = apiResult.data.map { fromApiModel(it) }
+                DataResult.Success(dataModels)
+            }
+            is ApiResult.Error -> DataResult.Error(apiResult.throwable)
+            is ApiResult.Loading -> DataResult.Loading()
         }
     }
 }
