@@ -10,14 +10,17 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
+/**
+ * Fetch most popular repositories with [DATE_OFFSET] to date passed in [invoke] function.
+ */
 class FetchRepositoriesUseCase @Inject constructor(private val repository: Repository) {
 
-    suspend operator fun invoke(): Flow<DataResult<RepositoryDataModel>> {
+    suspend operator fun invoke(date: Date = Date()): Flow<DataResult<RepositoryDataModel>> {
         calendar.apply {
-            time = Date() // Reset calendar to current time
+            time = date // Reset calendar to desired point in time
             add(Calendar.DAY_OF_MONTH, DATE_OFFSET)
         }
-        val timestamp =  dateFormat.format(calendar.time)
+        val timestamp =  queryDateFormat.format(calendar.time)
         val query = QUERY_FORMAT.format(timestamp)
         return repository.fetchRepositories(query).map {
             RepositoryMapper.fromApiResult(it)
@@ -25,10 +28,10 @@ class FetchRepositoriesUseCase @Inject constructor(private val repository: Repos
     }
 
     companion object {
-        private const val QUERY_FORMAT = "created:>%s"
+        const val QUERY_FORMAT = "created:>%s"
         private const val DATE_OFFSET = -30 // Get repos that were created in the last 30 days.
 
         private val calendar = Calendar.getInstance()
-        private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+        val queryDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
     }
 }
