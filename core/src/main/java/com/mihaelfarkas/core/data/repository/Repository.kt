@@ -1,20 +1,19 @@
 package com.mihaelfarkas.core.data.repository
 
-import android.util.Log
 import com.mihaelfarkas.core.data.datasource.ApiDataSource
 import com.mihaelfarkas.core.data.model.ApiResult
 import com.mihaelfarkas.core.data.model.RepositoryModel
 import com.mihaelfarkas.core.data.model.RepositoryPageModel
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 @ViewModelScoped
 class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSource) {
@@ -34,12 +33,11 @@ class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSou
             ++page
         }
 
-        withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { continuation ->
             _repositoryFlow.update { ApiResult.Loading(it.data) }
 
             remoteApiDataSource.searchRepositories(query = query, page = page.toString()).enqueue(object : Callback<RepositoryPageModel> {
                 override fun onResponse(call: Call<RepositoryPageModel>, response: Response<RepositoryPageModel>) {
-                    Log.d("TAG", "On response, success: ${response.isSuccessful}")
                     if (response.isSuccessful) {
                         val newData = response.body()?.items ?: emptyList()
                         _repositoryFlow.update {
@@ -50,11 +48,12 @@ class Repository @Inject constructor(private val remoteApiDataSource: ApiDataSou
                             ApiResult.Error(Exception(ERROR_FORMAT.format(response.code())), it.data)
                         }
                     }
+                    continuation.resume(Unit)
                 }
 
                 override fun onFailure(call: Call<RepositoryPageModel>, t: Throwable) {
-                    Log.d("TAG", "On response, success: onFailure")
                     _repositoryFlow.update { ApiResult.Error(t, it.data) }
+                    continuation.resume(Unit)
                 }
             })
         }

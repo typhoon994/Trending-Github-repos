@@ -35,11 +35,15 @@ class RepositoryListViewModel @Inject constructor(
         fetchNextRepositoriesPage()
     }
 
-    fun fetchNextRepositoriesPage() {
+    private fun fetchNextRepositoriesPage() {
         viewModelScope.launch {
             fetchRepositoriesUseCase.invoke()
         }
     }
+
+    fun onRetryButtonClick() = fetchNextRepositoriesPage()
+
+    fun onPageEndReached() = fetchNextRepositoriesPage()
 
     companion object {
         private const val STOP_TIMEOUT = 5000L
