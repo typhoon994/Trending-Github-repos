@@ -96,7 +96,7 @@ private fun LazyListState.isScrolledToEnd(): Boolean {
 @Preview
 @Composable
 private fun RepositoryListPreview() {
-    val item = RepositoryDataModel(0, "test", "description test", 4, "test user", "")
+    val item = RepositoryDataModel(0, "test", "description test", 1, "test user", "")
     RepositoryList(uiState = RepositoryListUiState(isLoading = true, isError = true, items = LinkedHashSet(listOf(item))), onRetryClick = {
         // Ignore retry click
     }, onPageEndReached = {
@@ -160,7 +160,7 @@ private fun RepositoryItem(item: RepositoryDataModel) {
 @Preview
 @Composable
 private fun RepositoryItemPreview() {
-    val item = RepositoryDataModel(0, "test", "description test", 4, "test user", "")
+    val item = RepositoryDataModel(0, "test", "description test", 1, "test user", "")
     RepositoryItem(item = item)
 }
 
