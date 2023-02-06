@@ -28,3 +28,11 @@ It exposes mechanisms for async image fetching and displaying in Compose friendl
 
 ### Agile
 - Github Issues
+
+## App runing
+Checkout master branch and fetch latest code. App should work out-of-box in debug variant. 
+
+For better UI performances create new signing key and run the app in release mode as suggested [here](https://developer.android.com/jetpack/compose/performance#build-release) by Google.
+
+## App architecture
+For more info check architecture diagram placed in `documents` folder in project root
