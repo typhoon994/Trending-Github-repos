@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.mihaelfarkas.core.domain.datamodel.DataResult
 import com.mihaelfarkas.core.domain.usecase.FetchRepositoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -19,7 +19,7 @@ class RepositoryListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _repositoryFlow = MutableStateFlow(RepositoryListUiState(isLoading = true))
-    val repositoryFlow: Flow<RepositoryListUiState> = _repositoryFlow
+    val repositoryFlow: StateFlow<RepositoryListUiState> = _repositoryFlow
 
     init {
         // Fetch initial data to display

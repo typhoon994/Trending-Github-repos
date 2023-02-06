@@ -84,7 +84,6 @@ private fun RepositoryList(
     }
 
     LaunchedEffect(endReached) {
-        Log.d("TAG", "End reached $endReached")
         if (endReached) onPageEndReached()
     }
 }
